@@ -1,1 +1,1 @@
-"# g-gitops" 
+# g-gitops 
