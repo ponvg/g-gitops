@@ -1,0 +1,10 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+
+apiVersion: apps/v1
+appVersion: "1.0"
+description: A Helm chart for deploying IBM Order Management System on a Kubernetes cluster
+name: ibm-oms
+version: 0.1.0

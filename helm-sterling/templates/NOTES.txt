@@ -1,0 +1,25 @@
+Please wait while the application is getting deployed
+
+
+Access the apps by running the following url
+
+{{- if contains "NodePort" .Values.appserver.service.type }}
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[1].nodePort}" services {{ template "ibm-oms.fullname" . }})
+  echo "smcfs : https://$NODE_IP:$NODE_PORT/smcfs"
+  echo "sbc : https://$NODE_IP:$NODE_PORT/sbc"
+  echo "sma : https://$NODE_IP:$NODE_PORT/sma"
+
+{{- else if contains "LoadBalancer" .Values.serviceType }}
+
+** Please ensure an external IP is associated to the {{ template "ibm-oms.fullname" . }} service before proceeding **
+** Watch the status using: kubectl get svc --namespace {{ .Release.Namespace }} -w {{ template "ibm-oms.fullname" . }} **
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "ibm-oms.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo URL            : http://$SERVICE_IP/
+  echo Management URL : http://$SERVICE_IP/manager
+{{- else if contains "ClusterIP"  .Values.serviceType }}
+  echo URL            : http://127.0.0.1:8080/
+  echo Management URL : http://127.0.0.1:8080/manager
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "ibm-oms.fullname" . }} 8080:8080
+{{- end }}

@@ -1,0 +1,38 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+{{- if eq .Values.omserver.deployHealthMonitor true }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ibm-oms.fullname" . }}-healthmonitor
+  labels:
+    app: {{ template "ibm-oms.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{ .replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ template "ibm-oms.fullname" . }}-healthmonitor
+  template:
+    metadata:
+      labels:
+        app: {{ template "ibm-oms.fullname" . }}-healthmonitor
+    spec:
+      containers:
+      - name: {{ template "ibm-oms.fullname" . }}-healthmonitor
+        image: "{{ .Values.omserver.image.repository }}/{{ .Values.omserver.image.name }}:{{ .Values.omserver.image.tag }}"
+        imagePullPolicy: {{ .Values.omserver.image.pullPolicy }}
+        command: ["/opt/ssfs/runtime/bin/startHealthMonitor.sh"]
+        volumeMounts:
+        - name: config
+          mountPath: "/opt/ssfs/runtime/properties/system_overrides.properties"
+          subPath: system_overrides.properties
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "ibm-oms.fullname" . }}-config
+{{- end }}

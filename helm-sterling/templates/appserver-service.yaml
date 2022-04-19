@@ -1,0 +1,30 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "ibm-oms.fullname" . }}
+  labels:
+    app: {{ template "ibm-oms.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  type: {{ .Values.appserver.service.type }}
+  ports:
+    - port: {{ .Values.appserver.service.http.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+      nodePort: {{ .Values.appserver.service.http.nodePort }}
+    - port: {{ .Values.appserver.service.https.port }}
+      targetPort: https
+      protocol: TCP
+      name: https
+      nodePort: {{ .Values.appserver.service.https.nodePort }}
+  selector:
+    app: {{ template "ibm-oms.fullname" . }}
+    role: "appserver"
+    release: "{{ .Release.Name }}"

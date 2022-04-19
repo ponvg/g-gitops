@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sterling-apps
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: dev
+        url: https://kubernetes.default.svc
+        ns: dev
+  template:
+    metadata:
+      name: '{{cluster}}-sterling-apps'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/ponvg/g-gitops.git
+        targetRevision: HEAD
+        path: helm-sterling
+      destination:
+        server: '{{url}}'
+        namespace: '{{ns}}'

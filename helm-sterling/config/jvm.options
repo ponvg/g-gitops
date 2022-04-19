@@ -1,0 +1,6 @@
+-Dvendor={{ .Values.appserver.config.vendor }}
+-DvendorFile={{ .Values.appserver.config.vendorFile }}
+-Xms{{ .Values.appserver.config.jvm.xms }}
+-Xmx{{ .Values.appserver.config.jvm.xmx }}
+-Dclient.encoding.override=UTF-8
+-Dfile.encoding=UTF-8

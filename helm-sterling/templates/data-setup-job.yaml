@@ -1,0 +1,37 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+{{- if eq .Values.datasetup.loadFactoryData true }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "ibm-oms.fullname" . }}-datasetup
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
+spec:
+  template:
+    metadata:
+      labels:
+        release: "{{ .Release.Name }}"
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: {{ template "ibm-oms.fullname" . }}-datasetup
+          image: "{{ .Values.datasetup.image.repository }}/{{ .Values.datasetup.image.name }}:{{ .Values.datasetup.image.tag }}"
+          imagePullPolicy: {{ .Values.datasetup.image.pullPolicy }}
+          command: ["/opt/ssfs/runtime/docker-samples/kubernetes/bin/init.runtime.sh"]
+          args: [{{ .Values.datasetup.mode | default "create" | quote }}]
+          volumeMounts:
+            - name: config
+              mountPath: "/opt/ssfs/runtime/properties/system_overrides.properties"
+              subPath: system_overrides.properties
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "ibm-oms.fullname" . }}-config
+{{- end }}

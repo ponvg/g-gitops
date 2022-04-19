@@ -1,0 +1,26 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+{{ $global := . }}
+{{ range .Values.persistence.claims -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "ibm-oms.fullname" $global }}-{{ .name | lower }}
+  labels:
+    app: {{ template "ibm-oms.fullname" $global }}
+    chart: "{{ $global.Chart.Name }}-{{ $global.Chart.Version }}"
+    release: "{{ $global.Release.Name }}"
+    heritage: "{{ $global.Release.Service }}"
+spec:
+  {{- if .storageClassName }}
+  storageClassName: {{ .storageClassName | quote }}
+  {{- end }}
+  accessModes:
+    - {{ .accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .size | quote }}
+{{ end -}}
+

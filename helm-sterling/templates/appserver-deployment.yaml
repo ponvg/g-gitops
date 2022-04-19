@@ -1,0 +1,86 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ibm-oms.fullname" . }}-appserver
+  labels:
+    app: {{ template "ibm-oms.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{ .Values.appserver.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "ibm-oms.fullname" . }}
+      role: "appserver"
+      release: "{{ .Release.Name }}"
+  template:
+    metadata:
+      labels:
+        app: {{ template "ibm-oms.fullname" . }}
+        role: "appserver"
+        release: "{{ .Release.Name }}"
+    spec:
+      containers:
+      - name: {{ template "ibm-oms.fullname" . }}-appserver
+        image: "{{ .Values.appserver.image.repository }}/{{ .Values.appserver.image.name }}:{{ .Values.appserver.image.tag }}"
+        imagePullPolicy: {{ .Values.appserver.image.pullPolicy }}
+        env:
+        - name: dbpassword
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "ibm-oms.fullname" . }}
+              key: dbpassword
+        - name: consoleadminpassword
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "ibm-oms.fullname" . }}
+              key: consoleadminpassword
+        - name: consolenonadminpassword
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "ibm-oms.fullname" . }}
+              key: consolenonadminpassword
+        ports:
+        - name: https
+          containerPort: 9443
+          protocol: TCP
+        - name: http
+          containerPort: 9080
+          protocol: TCP
+
+
+        volumeMounts:
+#        - name: search-index
+#          mountPath: "/shared"
+        {{- if .Values.mq.binding_config_name }}
+        - name: binding-config
+          mountPath: {{ .Values.mq.binding_mount_path | quote }}
+        {{- end }}
+        - name: config
+          mountPath: "/config/server.xml"
+          subPath: server.xml
+        - name: config
+          mountPath: "/config/jvm.options"
+          subPath: jvm.options
+        - name: config
+          mountPath: "/config/dropins/smcfs.ear/properties.jar/system_overrides.properties"
+          subPath: system_overrides.properties
+      volumes:
+#      - name: search-index
+#        persistentVolumeClaim:
+#          claimName: {{ template "ibm-oms.fullname" . }}-search-index
+      - name: config
+        configMap:
+          name: {{ template "ibm-oms.fullname" . }}-config
+        {{- if .Values.mq.binding_config_name }}
+      - name: binding-config
+        configMap:
+          name: {{ .Values.mq.binding_config_name }}
+      {{- end }}
+      resources:
+{{ toYaml .Values.appserver.resources | indent 8 }}

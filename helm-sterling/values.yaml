@@ -1,0 +1,90 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+
+
+# Default values for ibm-oms
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appserver:
+  replicaCount: 1
+  image: 
+    repository: nexus-repository:8443
+    name: om-app
+    tag: "10.01"
+    pullPolicy: Always
+  config:
+    vendor: websphere
+    vendorFile: servers.properties
+    jvm:
+      xms: 1024m
+      xmx: 2048m
+    database:
+      maxPoolSize: 50
+      minPoolSize: 10
+  service:
+    type: NodePort
+    http:
+      port: 9080
+      nodePort: 30083
+    https:
+      port: 9443
+      nodePort: 30446
+  secrets:
+    consoleadminpassword: admin
+    consolenonadminpassword: nonadmin
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+mq:
+  binding_config_name: oms101-binding-conf
+  binding_mount_path: //opt/mqbinding/
+
+omserver:
+  image: 
+    repository: nexus-repository:8443
+    name: om-agent
+    tag: "10.01"
+    pullPolicy: Always
+  deployHealthMonitor: true
+  servers:
+  - group: "Default Server"
+    name: 
+    - ManageItemFeedInt
+    jvmArgs: "-Xms512m\ -Xmx1024m"
+    replicaCount: 1
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+datasetup:
+  loadFactoryData: true
+  mode: create
+  skip: false
+  image: 
+    repository: nexus-repository:8443
+    name: om-agent
+    tag: "10.01"
+    pullPolicy: Always
+
+dbserver:
+  serverName: 192.168.20.47
+  port: 1521
+  dbvendor: oracle
+  systemPool: true
+  catalog: orcl
+  dbname: orcl
+  user: DVLMNGNO
+  password: DVLMNGNO
+  schema: DVLMNGNO
+  datasourceName: jdbc/OMDS
+
+persistence:
+  claims:
+  - name: search-index
+    storageClassName: manual
+    accessMode: ReadWriteMany
+    size: 100Mi

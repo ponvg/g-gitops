@@ -1,0 +1,65 @@
+# Licensed Materials - Property of IBM
+# IBM Sterling Order Management (5725-D10), IBM Order Management (5737-D18)
+# (C) Copyright IBM Corp. 2018 All Rights Reserved.
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+{{ $global := . }}
+{{ if .Values.omserver -}}
+{{ range .Values.omserver.servers -}}
+{{ $inter := . }}
+{{ range $inter.name -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ibm-oms.fullname" $global }}-{{ .| lower }}
+  labels:
+    app: {{ template "ibm-oms.fullname" $global }}
+    chart: "{{ $global.Chart.Name }}-{{ $global.Chart.Version }}"
+    release: "{{ $global.Release.Name }}"
+    heritage: "{{ $global.Release.Service }}"
+spec:
+  replicas: {{ $inter.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ template "ibm-oms.fullname" $global }}-{{ . | lower }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "ibm-oms.fullname" $global }}-{{ . | lower }}
+    spec:
+      containers:
+      - name: {{ template "ibm-oms.fullname" $global }}-{{ . | lower }}
+        image: "{{ $global.Values.omserver.image.repository }}/{{ $global.Values.omserver.image.name }}:{{ $global.Values.omserver.image.tag }}"
+        imagePullPolicy: {{ $global.Values.omserver.image.pullPolicy }}
+        command: ["/opt/ssfs/runtime/bin/agentserver.sh"]
+        {{- if $inter.jvmArgs }}
+        args: ["-jvmargs", {{ $inter.jvmArgs | quote }} , {{ . | quote }}]
+	{{- else }}
+        args: [{{ . | quote }}]
+        {{- end }}
+        volumeMounts:
+#        - name: search-index
+#          mountPath: "/shared/"
+        {{- if $global.Values.mq.binding_config_name }}
+        - name: binding-config
+          mountPath: {{ $global.Values.mq.binding_mount_path | quote }}
+        {{- end }}
+        - name: config
+          mountPath: "/opt/ssfs/runtime/properties/system_overrides.properties"
+          subPath: system_overrides.properties
+      volumes:
+#      - name: search-index
+#        persistentVolumeClaim:
+#          claimName: {{ template "ibm-oms.fullname" $global }}-search-index
+      - name: config
+        configMap:
+          name: {{ template "ibm-oms.fullname" $global }}-config
+      {{- if $global.Values.mq.binding_config_name }}
+      - name: binding-config
+        configMap:
+          name: {{ $global.Values.mq.binding_config_name }}
+      {{- end }}
+
+---
+{{ end -}}
+{{ end -}}
+{{ end -}}
