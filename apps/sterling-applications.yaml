@@ -11,7 +11,7 @@ spec:
         ns: dev
   template:
     metadata:
-      name: '{{cluster}}-sterling-apps'
+      name: 'sterling'
     spec:
       project: default
       source:
