@@ -9,7 +9,7 @@
 # Declare variables to be passed into your templates.
 
 appserver:
-  replicaCount: 1
+  replicaCount: 2
   image: 
     repository: nexus-repository:8443
     name: om-app
